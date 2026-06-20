@@ -1,6 +1,12 @@
 const imageInput = document.getElementById("imageInput");
 const preview = document.getElementById("preview");
+
+const loading = document.getElementById("loading");
 const result = document.getElementById("result");
+
+const expression = document.getElementById("expression");
+const confidence = document.getElementById("confidence");
+const fill = document.getElementById("fill");
 
 let selectedFile = null;
 
@@ -20,7 +26,8 @@ async function predictImage() {
         return;
     }
 
-    result.innerHTML = "Memproses gambar...";
+    loading.classList.remove("hidden");
+    result.classList.add("hidden");
 
     try {
 
@@ -62,16 +69,28 @@ async function predictImage() {
             `https://syabihul-pet.hf.space/gradio_api/call/predict/${eventId}`
         );
 
-        const resultText = await resultResponse.text();
+        const text = await resultResponse.text();
 
-        result.innerHTML = `<pre>${resultText}</pre>`;
+        console.log(text);
 
-    } catch (error) {
+        loading.classList.add("hidden");
 
-        console.error(error);
+        expression.textContent = "Berhasil diproses";
+        confidence.textContent = "Lihat Console (F12)";
+        fill.style.width = "100%";
 
-        result.innerHTML =
-            "Gagal terhubung ke Hugging Face API.";
+        result.classList.remove("hidden");
 
+    } catch (err) {
+
+        console.error(err);
+
+        loading.classList.add("hidden");
+
+        expression.textContent = "Error";
+        confidence.textContent = "0%";
+        fill.style.width = "0%";
+
+        result.classList.remove("hidden");
     }
 }
