@@ -10,6 +10,7 @@ const fill = document.getElementById("fill");
 
 let selectedFile = null;
 
+// Preview gambar
 imageInput.addEventListener("change", (e) => {
     selectedFile = e.target.files[0];
 
@@ -31,6 +32,7 @@ async function predictImage() {
 
     try {
 
+        // Upload gambar ke Hugging Face
         const formData = new FormData();
         formData.append("files", selectedFile);
 
@@ -44,7 +46,8 @@ async function predictImage() {
 
         const uploaded = await uploadResponse.json();
 
-        const response = await fetch(
+        // Jalankan prediksi
+        const predictResponse = await fetch(
             "https://syabihul-pet.hf.space/gradio_api/call/predict",
             {
                 method: "POST",
@@ -61,46 +64,62 @@ async function predictImage() {
             }
         );
 
-        const eventData = await response.json();
+        const predictData = await predictResponse.json();
+        const eventId = predictData.event_id;
 
-        const eventId = eventData.event_id;
-
+        // Ambil hasil prediksi
         const resultResponse = await fetch(
             `https://syabihul-pet.hf.space/gradio_api/call/predict/${eventId}`
         );
 
         const text = await resultResponse.text();
 
+        console.log("RAW RESPONSE:");
         console.log(text);
 
+        // Cari bagian data:
+        const dataLine = text
+            .split("\n")
+            .find(line => line.startsWith("data:"));
+
+        if (!dataLine) {
+            throw new Error("Data prediksi tidak ditemukan");
+        }
+
+        const responseData = JSON.parse(
+            dataLine.replace("data:", "").trim()
+        );
+
+        console.log("PARSED:");
+        console.log(responseData);
+
+        const prediction = responseData[0];
+
+        const label = prediction.label;
+
+        const bestPrediction =
+            prediction.confidences.find(
+                item => item.label === label
+            );
+
+        const score = bestPrediction
+            ? bestPrediction.confidence * 100
+            : 0;
+
+        // Tampilkan hasil
+        expression.textContent = label;
+        confidence.textContent =
+            score.toFixed(2) + "%";
+
+        fill.style.width =
+            score.toFixed(2) + "%";
+
         loading.classList.add("hidden");
+        result.classList.remove("hidden");
 
-const responseData = JSON.parse(
-    text.split("data: ")[1]
-);
+    } catch (error) {
 
-const prediction = responseData[0];
-
-const label = prediction.label;
-
-const maxConfidence =
-    prediction.confidences.find(
-        item => item.label === label
-    ).confidence;
-
-expression.textContent = label;
-
-confidence.textContent =
-    (maxConfidence * 100).toFixed(2) + "%";
-
-fill.style.width =
-    (maxConfidence * 100) + "%";
-
-result.classList.remove("hidden");
-
-    } catch (err) {
-
-        console.error(err);
+        console.error(error);
 
         loading.classList.add("hidden");
 
@@ -109,5 +128,7 @@ result.classList.remove("hidden");
         fill.style.width = "0%";
 
         result.classList.remove("hidden");
+
+        alert("Terjadi kesalahan. Cek Console (F12)");
     }
 }
