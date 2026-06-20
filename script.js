@@ -1,0 +1,1 @@
+const API_URL='https://YOUR_SPACE.hf.space';const p=document.getElementById('preview');imageInput.onchange=e=>{const f=e.target.files[0];if(f){p.src=URL.createObjectURL(f);p.style.display='block';}};async function predictImage(){alert('Ganti API_URL setelah backend Hugging Face aktif.');}

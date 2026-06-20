@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pet Facial Expression Recognition</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h1>🐶 Pet Facial Expression Recognition</h1>
+<p class="subtitle">CNN MobileNetV2</p>
+<input type="file" id="imageInput" accept="image/*">
+<img id="preview">
+<button onclick="predictImage()">Prediksi</button>
+<div id="loading" class="hidden">Memproses...</div>
+<div id="result" class="result hidden">
+<p><b>Ekspresi:</b> <span id="expression">-</span></p>
+<p><b>Confidence:</b> <span id="confidence">-</span></p>
+<div class="bar"><div id="fill"></div></div>
+</div>
+</div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
