@@ -75,11 +75,26 @@ async function predictImage() {
 
         loading.classList.add("hidden");
 
-        expression.textContent = "Berhasil diproses";
-        confidence.textContent = "Lihat Console (F12)";
-        fill.style.width = "100%";
+const responseData = JSON.parse(
+    text.split("data: ")[1]
+);
 
-        result.classList.remove("hidden");
+const label = responseData.label;
+
+const maxConfidence =
+    responseData.confidences.find(
+        item => item.label === label
+    ).confidence;
+
+expression.textContent = label;
+
+confidence.textContent =
+    (maxConfidence * 100).toFixed(2) + "%";
+
+fill.style.width =
+    (maxConfidence * 100) + "%";
+
+result.classList.remove("hidden");
 
     } catch (err) {
 
