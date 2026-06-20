@@ -46,7 +46,7 @@ async function predictImage() {
 
         const uploaded = await uploadResponse.json();
 
-        // Jalankan prediksi
+        // Request prediksi
         const predictResponse = await fetch(
             "https://syabihul-pet.hf.space/gradio_api/call/predict",
             {
@@ -67,52 +67,48 @@ async function predictImage() {
         const predictData = await predictResponse.json();
         const eventId = predictData.event_id;
 
-        // Ambil hasil prediksi
+        // Ambil hasil
         const resultResponse = await fetch(
             `https://syabihul-pet.hf.space/gradio_api/call/predict/${eventId}`
         );
 
         const text = await resultResponse.text();
 
-        console.log("RAW RESPONSE:");
         console.log(text);
 
-        // Cari bagian data:
-        const dataLine = text
-            .split("\n")
-            .find(line => line.startsWith("data:"));
+        // Ambil JSON setelah "data:"
+        const match = text.match(/data:\s*(.+)/);
 
-        if (!dataLine) {
+        if (!match) {
             throw new Error("Data prediksi tidak ditemukan");
         }
 
-        const responseData = JSON.parse(
-            dataLine.replace("data:", "").trim()
-        );
+        const data = JSON.parse(match[1]);
 
-        console.log("PARSED:");
-        console.log(responseData);
+        // Data dari HF:
+        // [{
+        //   label: "Angry",
+        //   confidences: [...]
+        // }]
 
-        const prediction = responseData[0];
+        const prediction = data[0];
 
         const label = prediction.label;
 
-        const bestPrediction =
-            prediction.confidences.find(
-                item => item.label === label
+        const bestConfidence =
+            Math.max(
+                ...prediction.confidences.map(
+                    item => item.confidence
+                )
             );
 
-        const score = bestPrediction
-            ? bestPrediction.confidence * 100
-            : 0;
-
-        // Tampilkan hasil
         expression.textContent = label;
+
         confidence.textContent =
-            score.toFixed(2) + "%";
+            (bestConfidence * 100).toFixed(2) + "%";
 
         fill.style.width =
-            score.toFixed(2) + "%";
+            (bestConfidence * 100).toFixed(2) + "%";
 
         loading.classList.add("hidden");
         result.classList.remove("hidden");
@@ -129,6 +125,6 @@ async function predictImage() {
 
         result.classList.remove("hidden");
 
-        alert("Terjadi kesalahan. Cek Console (F12)");
+        alert("Gagal mengambil hasil prediksi");
     }
 }
