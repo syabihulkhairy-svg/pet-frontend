@@ -79,10 +79,12 @@ const responseData = JSON.parse(
     text.split("data: ")[1]
 );
 
-const label = responseData.label;
+const prediction = responseData[0];
+
+const label = prediction.label;
 
 const maxConfidence =
-    responseData.confidences.find(
+    prediction.confidences.find(
         item => item.label === label
     ).confidence;
 
